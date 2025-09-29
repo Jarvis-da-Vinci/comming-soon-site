@@ -1,262 +1,331 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unsere KI – Coming Soon</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flappy Bird (Demo) — Jarvis-Da-Vinci</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: url('hintergrund1.jpg') no-repeat center center fixed;
-      background-size: cover;
-      color: #f0f6fc;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+    :root{
+      --bg:#70c5ce;
+      --ground:#ded895;
+      --pipe:#2ea44f;
+      --text:#0b0b0b;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(0,0,0,0.7);
-      padding: 15px 30px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      box-sizing: border-box;
-      z-index: 1000;
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      background: linear-gradient(#87CEEB,#70c5ce 60%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #58a6ff;
-      text-decoration: none;
+    #gameWrap{
+      width: 360px; /* klassische Flappy-Bird-Breite */
+      max-width: 95vw;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(#70c5ce 0%, #9de0e9 100%);
+      position: relative;
     }
-    .brand img {
-      height: 30px;
-      margin-right: 10px;
+    canvas{ display:block; width:100%; height:auto; background: transparent; }
+    #hud {
+      position:absolute; left:10px; top:10px; color:var(--text);
+      background: rgba(255,255,255,0.85); padding:6px 10px; border-radius:6px;
+      font-weight:600; user-select:none;
     }
-    nav a {
-      margin: 0 15px;
-      color: #58a6ff;
-      text-decoration: none;
-      font-weight: bold;
-      transition: color 0.3s;
-      padding: 5px 10px;
-      border-radius: 5px;
+    #msg {
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      text-align:center;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.5);
     }
-    nav a:hover {
-      color: #ffdd57;
-    }
-    nav a.active {
-      background: #58a6ff;
-      color: #000;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding-top: 80px; /* Platz für Header */
-    }
-    .container {
-      background: rgba(0,0,0,0.6);
-      padding: 20px;
-      border-radius: 15px;
-    }
-    .logo {
-      width: 350px; /* Logo vergrößert */
-      max-width: 90%; /* passt sich kleineren Bildschirmen an */
-      margin-bottom: 20px;
-    }
-    .logo {
-      width: 1000px;
-      margin-bottom: 60px;
-    }
-    h1 {
-      font-size: 3.2em;
-      margin-bottom: 10px;
-      animation: fadeIn 2s ease-in-out;
-    }
-    #countdown {
-      font-size: 2.6em;
-      margin-bottom: 20px;
-      color: orange;
-      animation: fadeIn 2.5s ease-in-out;
-    }
-    footer {
-      margin-top: 50px;
-      font-size: 0.9em;
-      color: #8b949e;
-    }
-     footer a {
-      color: #8b949e;
-      margin: 0 10px;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    footer a:hover {
-      text-decoration: underline;
-    }
-    .legal {
-      max-width: 800px;
-      margin: 50px auto;
-      text-align: left;
-      padding: 20px;
-      background: rgba(0,0,0,0.6);
-      border-radius: 10px;
-    }
-
-    .info-section {
-      max-width: 1000px;
-      margin: 80px auto;
-      padding: 40px;
-      background: rgba(0,0,0,0.6);
-      border-radius: 15px;
-      opacity: 0;
-      transform: translateX(-100px);
-      transition: all 1s ease-out;
-    }
-    .info-section.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-    .info-section.right {
-      transform: translateX(100px);
-    }
-
-   @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    #msg .title { font-size:20px; margin-bottom:8px; font-weight:700; }
+    #msg .sub { font-size:14px; opacity:0.95; }
+    #controls { margin-top:8px; display:flex; gap:8px; justify-content:center; }
+    .btn { background:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;}
+    .small { font-size:12px; padding:6px 10px;}
+    footer.note { font-size:11px; color:#333; padding:8px; text-align:center; background:rgba(255,255,255,0.85);}
   </style>
 </head>
 <body>
-  <header>
-    <a href="index.html" class="brand">
-      <img src="logo-klein.png" alt="Logo klein">
-      Jarvis-Da-Vinci
-    </a>
-    <nav>
-      <a href="ueber-uns.html" id="nav-ueber">Über uns</a>
-      <a href="kontakt.html" id="nav-kontakt">Kontakt</a>
-      <a href="planung.html" id="nav-planung">Planung</a>
-      <a href="ansprechpartner.html" id="nav-ansprech">Ansprechpartner</a>
-    </nav>
-  </header>
+  <div id="gameWrap">
+    <canvas id="game"></canvas>
+    <div id="hud">Score: <span id="score">0</span></div>
 
-  <main>
-    <div class="container">
-      <img src="logo.jpg" alt="Logo" class="logo">
-      <h1>Jarvis-Da-Vinci AI</h1>
-      <h1>startet bald!</h1>
-      <p id="countdown"></p>
-
-      <nav>
-        <a href="https://github.com/Jarvis-da-Vinci" target="_blank">GitHub</a>
-        <a href="mailto:info@jarvis-da-vinci.de">info@jarvis-da-vinci.de</a>
-        <a href="http://shop.jarvis-da-vinci.de">Shop</a>
-      </nav>
-
-      <footer>
-        <a onclick="toggleSection('impressum')">Impressum</a> |
-        <a onclick="toggleSection('datenschutz')">Datenschutz</a>
-      </footer>
+    <div id="msg" style="display:none;">
+      <div class="title">Flappy Bird — Demo</div>
+      <div class="sub">Leertaste oder Klick zum Fliegen</div>
+      <div id="controls">
+        <div class="btn" id="startBtn">Start</div>
+        <div class="btn small" id="muteBtn">Ton aus</div>
+      </div>
     </div>
-  </main>
-
-  <!-- Demo Info Sections -->
-  <section class="info-section">
-    <h2>Modulare KI-Architektur</h2>
-    <p>Unsere KI basiert auf einem modularen System aus verschiedenen Bausteinen, die flexibel kombiniert werden können.</p>
-  </section>
-  <section class="info-section right">
-    <h2>Echtzeit-Datenanalyse</h2>
-    <p>Die Demo-KI verarbeitet Daten in Echtzeit und erkennt Muster innerhalb von Sekunden.</p>
-  </section>
-  <section class="info-section">
-    <h2>Lernende Systeme</h2>
-    <p>Mit jedem Durchlauf wird das System intelligenter und passt sich neuen Anforderungen automatisch an.</p>
-  </section>
-  <section class="info-section right">
-    <h2>Interaktive Oberfläche</h2>
-    <p>Eine intuitive Benutzeroberfläche ermöglicht einfache Bedienung und maximale Transparenz der Prozesse.</p>
-  </section>
-
-  <!-- Impressum -->
-  <section id="impressum" class="legal">
-    <h2>Impressum</h2>
-    <p>Angaben gemäß § 5 TMG</p>
-    <p>Projektteam KI<br>
-    <p><strong>Vertreten durch:</strong><br>Die Projektgruppe FISI`S</p>
-    <p><strong>Kontakt:</strong><br>Email: info@jarvis-da-vinci.de</p>
-  </section>
-
-  <!-- Datenschutz -->
-  <section id="datenschutz" class="legal">
-    <h2>Datenschutzerklärung</h2>
-    <p>Wir nehmen den Schutz Ihrer persönlichen Daten ernst. Diese Webseite dient aktuell nur als Projekt-Demoseite. Es werden keine personenbezogenen Daten erhoben, gespeichert oder verarbeitet.</p>
-    <p>Für Rückfragen wenden Sie sich bitte an: info@jarvis-da-vinci.de</p>
-  </section>
+  </div>
 
   <script>
-    const targetDate = new Date("2027-12-24T00:00:00").getTime();
-    const countdownElement = document.getElementById("countdown");
+  // ---- Einstellungen ----
+  const CANVAS_WIDTH = 480;     // interne Auflösung (skaliert im CSS)
+  const CANVAS_HEIGHT = 640;
+  const PIPE_WIDTH = 70;
+  const PIPE_GAP = 160;        // Lücke zwischen oberen und unteren Rohr
+  const PIPE_INTERVAL = 1500;  // ms zwischen neuen Rohren
+  const GRAVITY = 0.0016;      // px/ms^2 ~ Schwerkraft
+  const FLAP_VELOCITY = -0.45; // px/ms Impuls bei Flap
+  const PIPE_SPEED = -0.18;    // px/ms Rohre bewegen sich nach links
 
-    setInterval(() => {
-      const now = new Date().getTime();
-      const diff = targetDate - now;
+  // ---- Setup Canvas & Skalierung ----
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: true });
 
-      if (diff < 0) {
-        countdownElement.innerText = "Die KI ist gestartet!";
-        return;
-      }
+  function resizeCanvas(){
+    const wrap = document.getElementById('gameWrap');
+    const rect = wrap.getBoundingClientRect();
+    // interne Auflösung beibehalten, Canvas scaled via CSS
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = (rect.width * CANVAS_HEIGHT / CANVAS_WIDTH) + 'px';
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
+  // ---- Assets ----
+  const birdImg = new Image();
+  birdImg.src = 'bird.jpg'; // <-- Leg deine bird.jpg ins gleiche Verzeichnis
+  // Optional: pipe image? We'll draw pipes as rectangles by default.
 
-      countdownElement.innerText = `${days} Tage ${hours} Std ${minutes} Min ${seconds} Sek`;
-    }, 1000);
+  // ---- Game State ----
+  let lastTime = 0;
+  let running = false;
+  let gameOver = false;
+  let score = 0;
+  let pipes = []; // {x, topHeight, passed}
+  let spawnTimer = 0;
 
-    function toggleSection(id) {
-      const section = document.getElementById(id);
-      if (section.style.display === 'none' || section.style.display === '') {
-        section.style.display = 'block';
-        section.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        section.style.display = 'none';
-      }
+  // Bird physics
+  const bird = {
+    x: CANVAS_WIDTH * 0.25,
+    y: CANVAS_HEIGHT * 0.4,
+    vy: 0,
+    rotation: 0,
+    width: 48,
+    height: 36,
+  };
+
+  // Ground (visual)
+  const groundHeight = 80;
+
+  // Audio (optional simple)
+  let soundOn = false;
+  const flapAudio = new Audio(); flapAudio.src = ''; // placeholder, disabled by default
+
+  // ---- Controls ----
+  function flap(){
+    if (!running){
+      startGame();
+      return;
+    }
+    if (gameOver) return;
+    bird.vy = FLAP_VELOCITY;
+    bird.rotation = -0.35;
+    if(soundOn) playFlap();
+  }
+  function playFlap(){ try{ flapAudio.currentTime=0; flapAudio.play(); }catch(e){} }
+
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); flap(); }
+  });
+  window.addEventListener('mousedown', e => { flap(); });
+  window.addEventListener('touchstart', e => { e.preventDefault(); flap(); }, {passive:false});
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  const muteBtn = document.getElementById('muteBtn');
+  muteBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    muteBtn.innerText = soundOn ? 'Ton an' : 'Ton aus';
+  });
+
+  // ---- Game lifecycle ----
+  function resetGame(){
+    pipes = [];
+    spawnTimer = 0;
+    score = 0;
+    bird.y = CANVAS_HEIGHT * 0.4;
+    bird.vy = 0;
+    bird.rotation = 0;
+    gameOver = false;
+    updateHUD();
+  }
+
+  function startGame(){
+    resetGame();
+    running = true;
+    lastTime = performance.now();
+    document.getElementById('msg').style.display = 'none';
+    requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    gameOver = true;
+    running = false;
+    document.getElementById('msg').style.display = 'block';
+    document.querySelector('#msg .title').innerText = 'Game Over';
+    document.querySelector('#msg .sub').innerText = 'Score: ' + score + ' — Klick Start um neu zu starten';
+    document.getElementById('startBtn').innerText = 'Neustart';
+  }
+
+  // ---- Pipes creation ----
+  function spawnPipe(){
+    const minTop = 60;
+    const maxTop = CANVAS_HEIGHT - groundHeight - PIPE_GAP - 60;
+    const top = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+    pipes.push({ x: CANVAS_WIDTH + PIPE_WIDTH, topHeight: top, passed:false });
+  }
+
+  // ---- Collision detection ----
+  function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh){
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  function checkCollisions(){
+    // ground collision
+    if (bird.y + bird.height/2 >= CANVAS_HEIGHT - groundHeight){
+      return true;
+    }
+    // ceiling
+    if (bird.y - bird.height/2 <= 0) return true;
+
+    // pipes
+    for(const p of pipes){
+      // top pipe rectangle
+      if (rectsOverlap(bird.x - bird.width/2, bird.y - bird.height/2, bird.width, bird.height,
+        p.x, 0, PIPE_WIDTH, p.topHeight)) return true;
+      // bottom pipe
+      const bottomY = p.topHeight + PIPE_GAP;
+      if (rectsOverlap(bird.x - bird.width/2, bird.y - bird.height/2, bird.width, bird.height,
+        p.x, bottomY, PIPE_WIDTH, CANVAS_HEIGHT - groundHeight - bottomY)) return true;
+    }
+    return false;
+  }
+
+  // ---- HUD ----
+  function updateHUD(){ document.getElementById('score').innerText = score; }
+
+  // ---- Main Loop ----
+  function loop(now){
+    const dt = now - lastTime;
+    lastTime = now;
+
+    // physics
+    bird.vy += GRAVITY * dt;
+    bird.y += bird.vy * dt;
+    bird.rotation += 0.001 * dt;
+    if (bird.rotation > 1.2) bird.rotation = 1.2;
+
+    // spawn pipes
+    spawnTimer += dt;
+    if (spawnTimer >= PIPE_INTERVAL){
+      spawnTimer = 0;
+      spawnPipe();
     }
 
-    // Scroll Animation
-    const sections = document.querySelectorAll('.info-section');
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.2 });
+    // move pipes
+    for(const p of pipes){
+      p.x += PIPE_SPEED * dt;
+      // scoring
+      if (!p.passed && p.x + PIPE_WIDTH < bird.x - bird.width/2){
+        p.passed = true;
+        score += 1;
+        updateHUD();
+      }
+    }
+    // remove off-screen pipes
+    pipes = pipes.filter(p => p.x + PIPE_WIDTH > -50);
 
-    sections.forEach(section => {
-      observer.observe(section);
-    });
+    // check collision
+    if (!gameOver && checkCollisions()){
+      endGame();
+    }
 
-    // Active Nav Highlight
-    const currentPage = window.location.pathname.split("/").pop();
-    if (currentPage.includes("ueber-uns")) document.getElementById("nav-ueber").classList.add("active");
-    if (currentPage.includes("kontakt")) document.getElementById("nav-kontakt").classList.add("active");
-    if (currentPage.includes("planung")) document.getElementById("nav-planung").classList.add("active");
-    if (currentPage.includes("ansprechpartner")) document.getElementById("nav-ansprech").classList.add("active");
+    // draw
+    draw();
+
+    if (running) requestAnimationFrame(loop);
+  }
+
+  // ---- Drawing ----
+  function draw(){
+    // clear
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // background gradient (sky)
+    const g = ctx.createLinearGradient(0,0,0,canvas.height);
+    g.addColorStop(0,'#87CEEB'); g.addColorStop(1,'#9de0e9');
+    ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // pipes
+    ctx.fillStyle = '#2ea44f';
+    for(const p of pipes){
+      // top
+      ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topHeight);
+      // cap (rounded top) - simple shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      ctx.fillRect(p.x, p.topHeight - 8, PIPE_WIDTH, 8);
+      ctx.fillStyle = '#2ea44f';
+      // bottom
+      const bottomY = p.topHeight + PIPE_GAP;
+      ctx.fillRect(p.x, bottomY, PIPE_WIDTH, canvas.height - groundHeight - bottomY);
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      ctx.fillRect(p.x, bottomY + (canvas.height - groundHeight - bottomY) - 8, PIPE_WIDTH, 8);
+      ctx.fillStyle = '#2ea44f';
+    }
+
+    // ground
+    ctx.fillStyle = '#ded895';
+    ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+    // bird (image) centered on bird.x/bird.y
+    const bw = bird.width;
+    const bh = bird.height;
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rotation);
+    if (birdImg.complete && birdImg.naturalWidth !== 0){
+      // draw image with center alignment
+      ctx.drawImage(birdImg, -bw/2, -bh/2, bw, bh);
+    } else {
+      // placeholder circle if image not loaded
+      ctx.fillStyle = '#FFDD57';
+      ctx.beginPath(); ctx.ellipse(0,0,bw/2,bh/2,0,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+
+    // score big (center top)
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.font = 'bold 36px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(score, canvas.width/2, 56);
+  }
+
+  // ---- On load: show message and wire up image load ----
+  birdImg.onload = () => {
+    // scale bird to reasonable size depending on canvas
+    const scale = Math.min(1, canvas.width / 480);
+    bird.width = Math.round(48 * scale * 1.5);
+    bird.height = Math.round(36 * scale * 1.5);
+    draw();
+  };
+
+  // show initial message
+  document.getElementById('msg').style.display = 'block';
+  document.querySelector('#msg .title').innerText = 'Flappy Bird Demo';
+  document.querySelector('#msg .sub').innerText = 'Leertaste oder Klick zum Fliegen';
+
+  // initial draw
+  draw();
+
+  // center on load resize
+  setTimeout(resizeCanvas, 100);
   </script>
 </body>
 </html>
