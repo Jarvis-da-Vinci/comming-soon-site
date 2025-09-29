@@ -5,12 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Flappy Bird (Demo) — Jarvis-Da-Vinci</title>
   <style>
-    :root{
-      --bg:#70c5ce;
-      --ground:#ded895;
-      --pipe:#2ea44f;
-      --text:#0b0b0b;
-    }
     html,body{
       height:100%;
       margin:0;
@@ -21,7 +15,7 @@
       justify-content:center;
     }
     #gameWrap{
-      width: 360px; /* klassische Flappy-Bird-Breite */
+      width: 360px;
       max-width: 95vw;
       box-shadow: 0 8px 24px rgba(0,0,0,0.25);
       border-radius: 8px;
@@ -31,7 +25,7 @@
     }
     canvas{ display:block; width:100%; height:auto; background: transparent; }
     #hud {
-      position:absolute; left:10px; top:10px; color:var(--text);
+      position:absolute; left:10px; top:10px; color:#0b0b0b;
       background: rgba(255,255,255,0.85); padding:6px 10px; border-radius:6px;
       font-weight:600; user-select:none;
     }
@@ -44,7 +38,6 @@
     #controls { margin-top:8px; display:flex; gap:8px; justify-content:center; }
     .btn { background:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:700;}
     .small { font-size:12px; padding:6px 10px;}
-    footer.note { font-size:11px; color:#333; padding:8px; text-align:center; background:rgba(255,255,255,0.85);}
   </style>
 </head>
 <body>
@@ -64,23 +57,21 @@
 
   <script>
   // ---- Einstellungen ----
-  const CANVAS_WIDTH = 480;     // interne Auflösung (skaliert im CSS)
+  const CANVAS_WIDTH = 480;
   const CANVAS_HEIGHT = 640;
   const PIPE_WIDTH = 70;
-  const PIPE_GAP = 160;        // Lücke zwischen oberen und unteren Rohr
-  const PIPE_INTERVAL = 1500;  // ms zwischen neuen Rohren
-  const GRAVITY = 0.0016;      // px/ms^2 ~ Schwerkraft
-  const FLAP_VELOCITY = -0.45; // px/ms Impuls bei Flap
-  const PIPE_SPEED = -0.18;    // px/ms Rohre bewegen sich nach links
+  const PIPE_GAP = 160;
+  const PIPE_INTERVAL = 1500;
+  const GRAVITY = 0.0016;
+  const FLAP_VELOCITY = -0.45;
+  const PIPE_SPEED = -0.18;
 
-  // ---- Setup Canvas & Skalierung ----
   const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d', { alpha: true });
+  const ctx = canvas.getContext('2d');
 
   function resizeCanvas(){
     const wrap = document.getElementById('gameWrap');
     const rect = wrap.getBoundingClientRect();
-    // interne Auflösung beibehalten, Canvas scaled via CSS
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
     canvas.style.width = rect.width + 'px';
@@ -91,20 +82,18 @@
 
   // ---- Assets ----
   const birdImg = new Image();
-  birdImg.src = 'bird.jpg'; // <-- Leg deine bird.jpg ins gleiche Verzeichnis
-  // Optional: pipe image? We'll draw pipes as rectangles by default.
-const serverImg = new Image();
-serverImg.src = "server.jpg"; // dein Bild für die Stangen
-    
+  birdImg.src = 'bird.jpg'; // Dein Bird-Bild
+  const serverImg = new Image();
+  serverImg.src = "server.jpg"; // Dein Server-Bild für Pipes
+
   // ---- Game State ----
   let lastTime = 0;
   let running = false;
   let gameOver = false;
   let score = 0;
-  let pipes = []; // {x, topHeight, passed}
+  let pipes = [];
   let spawnTimer = 0;
 
-  // Bird physics
   const bird = {
     x: CANVAS_WIDTH * 0.25,
     y: CANVAS_HEIGHT * 0.4,
@@ -114,14 +103,9 @@ serverImg.src = "server.jpg"; // dein Bild für die Stangen
     height: 36,
   };
 
-  // Ground (visual)
   const groundHeight = 80;
-
-  // Audio (optional simple)
   let soundOn = false;
-  const flapAudio = new Audio(); flapAudio.src = ''; // placeholder, disabled by default
 
-  // ---- Controls ----
   function flap(){
     if (!running){
       startGame();
@@ -130,13 +114,9 @@ serverImg.src = "server.jpg"; // dein Bild für die Stangen
     if (gameOver) return;
     bird.vy = FLAP_VELOCITY;
     bird.rotation = -0.35;
-    if(soundOn) playFlap();
   }
-  function playFlap(){ try{ flapAudio.currentTime=0; flapAudio.play(); }catch(e){} }
 
-  window.addEventListener('keydown', e => {
-    if (e.code === 'Space') { e.preventDefault(); flap(); }
-  });
+  window.addEventListener('keydown', e => { if (e.code === 'Space'){ e.preventDefault(); flap(); } });
   window.addEventListener('mousedown', e => { flap(); });
   window.addEventListener('touchstart', e => { e.preventDefault(); flap(); }, {passive:false});
 
@@ -147,7 +127,6 @@ serverImg.src = "server.jpg"; // dein Bild für die Stangen
     muteBtn.innerText = soundOn ? 'Ton an' : 'Ton aus';
   });
 
-  // ---- Game lifecycle ----
   function resetGame(){
     pipes = [];
     spawnTimer = 0;
@@ -176,7 +155,6 @@ serverImg.src = "server.jpg"; // dein Bild für die Stangen
     document.getElementById('startBtn').innerText = 'Neustart';
   }
 
-  // ---- Pipes creation ----
   function spawnPipe(){
     const minTop = 60;
     const maxTop = CANVAS_HEIGHT - groundHeight - PIPE_GAP - 60;
@@ -184,25 +162,16 @@ serverImg.src = "server.jpg"; // dein Bild für die Stangen
     pipes.push({ x: CANVAS_WIDTH + PIPE_WIDTH, topHeight: top, passed:false });
   }
 
-  // ---- Collision detection ----
   function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh){
     return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
   }
 
   function checkCollisions(){
-    // ground collision
-    if (bird.y + bird.height/2 >= CANVAS_HEIGHT - groundHeight){
-      return true;
-    }
-    // ceiling
+    if (bird.y + bird.height/2 >= CANVAS_HEIGHT - groundHeight){ return true; }
     if (bird.y - bird.height/2 <= 0) return true;
-
-    // pipes
     for(const p of pipes){
-      // top pipe rectangle
       if (rectsOverlap(bird.x - bird.width/2, bird.y - bird.height/2, bird.width, bird.height,
         p.x, 0, PIPE_WIDTH, p.topHeight)) return true;
-      // bottom pipe
       const bottomY = p.topHeight + PIPE_GAP;
       if (rectsOverlap(bird.x - bird.width/2, bird.y - bird.height/2, bird.width, bird.height,
         p.x, bottomY, PIPE_WIDTH, CANVAS_HEIGHT - groundHeight - bottomY)) return true;
@@ -210,138 +179,94 @@ serverImg.src = "server.jpg"; // dein Bild für die Stangen
     return false;
   }
 
-  // ---- HUD ----
   function updateHUD(){ document.getElementById('score').innerText = score; }
 
-  // ---- Main Loop ----
   function loop(now){
     const dt = now - lastTime;
     lastTime = now;
 
-    // physics
     bird.vy += GRAVITY * dt;
     bird.y += bird.vy * dt;
     bird.rotation += 0.001 * dt;
     if (bird.rotation > 1.2) bird.rotation = 1.2;
 
-    // spawn pipes
     spawnTimer += dt;
     if (spawnTimer >= PIPE_INTERVAL){
       spawnTimer = 0;
       spawnPipe();
     }
 
-    // move pipes
     for(const p of pipes){
       p.x += PIPE_SPEED * dt;
-      // scoring
       if (!p.passed && p.x + PIPE_WIDTH < bird.x - bird.width/2){
         p.passed = true;
         score += 1;
         updateHUD();
       }
     }
-    // remove off-screen pipes
     pipes = pipes.filter(p => p.x + PIPE_WIDTH > -50);
 
-    // check collision
-    if (!gameOver && checkCollisions()){
-      endGame();
-    }
-
-    // draw
+    if (!gameOver && checkCollisions()){ endGame(); }
     draw();
-
     if (running) requestAnimationFrame(loop);
   }
 
-  // ---- Drawing ----
   function draw(){
-    // clear
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // background gradient (sky)
+    // Hintergrund
     const g = ctx.createLinearGradient(0,0,0,canvas.height);
     g.addColorStop(0,'#87CEEB'); g.addColorStop(1,'#9de0e9');
     ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // pipes
-    //ctx.fillStyle = '#2ea44f';
-   //for(const p of pipes){
-      // top
-      //ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topHeight);
-      // cap (rounded top) - simple shadow
-    //  ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      //ctx.fillRect(p.x, p.topHeight - 8, PIPE_WIDTH, 8);
-    //  ctx.fillStyle = '#2ea44f';
-      // bottom
-      //const bottomY = p.topHeight + PIPE_GAP;
-      //ctx.fillRect(p.x, bottomY, PIPE_WIDTH, canvas.height - groundHeight - bottomY);
-      //ctx.fillStyle = 'rgba(0,0,0,0.06)';
-     // ctx.fillRect(p.x, bottomY + (canvas.height - groundHeight - bottomY) - 8, PIPE_WIDTH, 8);
-     // ctx.fillStyle = '#2ea44f';
-    //}
-// obere Stange (Server-Bild nach unten ausgerichtet)
-ctx.drawImage(serverImg, pipe.x, 0, pipeWidth, pipe.top);
+    // Pipes als Server-Bilder
+    for(const p of pipes){
+      const bottomY = p.topHeight + PIPE_GAP;
+      ctx.drawImage(serverImg, p.x, 0, PIPE_WIDTH, p.topHeight);
+      ctx.drawImage(serverImg, p.x, bottomY, PIPE_WIDTH, canvas.height - groundHeight - bottomY);
+    }
 
-// untere Stange (Server-Bild nach oben ausgerichtet)
-ctx.drawImage(serverImg, pipe.x, canvas.height - pipe.bottom, pipeWidth, pipe.bottom);
-
-    
-    // ground
+    // Boden
     ctx.fillStyle = '#ded895';
     ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 
-    // bird (image) centered on bird.x/bird.y
-    const bw = bird.width;
-    const bh = bird.height;
+    // Bird (rund)
+    const bw = bird.width, bh = bird.height;
     ctx.save();
     ctx.translate(bird.x, bird.y);
     ctx.rotate(bird.rotation);
     if (birdImg.complete && birdImg.naturalWidth !== 0){
-  // Runde Maske erstellen
-  ctx.beginPath();
-  ctx.arc(0, 0, bw/2, 0, Math.PI * 2); 
-  ctx.closePath();
-  ctx.clip();
-
-  // Bild ins runde Clip zeichnen
-  ctx.drawImage(birdImg, -bw/2, -bh/2, bw, bh);
-} else {
-  // Platzhalter-Kreis falls Bild nicht geladen ist
-  ctx.fillStyle = '#FFDD57';
-  ctx.beginPath(); 
-  ctx.arc(0,0,bw/2,0,Math.PI*2); 
-  ctx.fill();
-  
+      ctx.beginPath();
+      ctx.arc(0, 0, bw/2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(birdImg, -bw/2, -bh/2, bw, bh);
+    } else {
+      ctx.fillStyle = '#FFDD57';
+      ctx.beginPath();
+      ctx.arc(0,0,bw/2,0,Math.PI*2);
+      ctx.fill();
     }
     ctx.restore();
 
-    // score big (center top)
+    // Score
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.font = 'bold 36px Arial';
     ctx.textAlign = 'center';
     ctx.fillText(score, canvas.width/2, 56);
   }
 
-  // ---- On load: show message and wire up image load ----
   birdImg.onload = () => {
-    // scale bird to reasonable size depending on canvas
     const scale = Math.min(1, canvas.width / 480);
     bird.width = Math.round(48 * scale * 1.5);
     bird.height = Math.round(36 * scale * 1.5);
     draw();
   };
 
-  // show initial message
   document.getElementById('msg').style.display = 'block';
   document.querySelector('#msg .title').innerText = 'Flappy Bird Demo';
   document.querySelector('#msg .sub').innerText = 'Leertaste oder Klick zum Fliegen';
-
-  // initial draw
   draw();
-
-  // center on load resize
   setTimeout(resizeCanvas, 100);
   </script>
 </body>
