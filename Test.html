@@ -93,7 +93,9 @@
   const birdImg = new Image();
   birdImg.src = 'bird.jpg'; // <-- Leg deine bird.jpg ins gleiche Verzeichnis
   // Optional: pipe image? We'll draw pipes as rectangles by default.
-
+const serverImg = new Image();
+serverImg.src = "server.jpg"; // dein Bild für die Stangen
+    
   // ---- Game State ----
   let lastTime = 0;
   let running = false;
@@ -264,22 +266,28 @@
     ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
 
     // pipes
-    ctx.fillStyle = '#2ea44f';
-    for(const p of pipes){
+    //ctx.fillStyle = '#2ea44f';
+   //for(const p of pipes){
       // top
-      ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topHeight);
+      //ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topHeight);
       // cap (rounded top) - simple shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      ctx.fillRect(p.x, p.topHeight - 8, PIPE_WIDTH, 8);
-      ctx.fillStyle = '#2ea44f';
+    //  ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      //ctx.fillRect(p.x, p.topHeight - 8, PIPE_WIDTH, 8);
+    //  ctx.fillStyle = '#2ea44f';
       // bottom
-      const bottomY = p.topHeight + PIPE_GAP;
-      ctx.fillRect(p.x, bottomY, PIPE_WIDTH, canvas.height - groundHeight - bottomY);
-      ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      ctx.fillRect(p.x, bottomY + (canvas.height - groundHeight - bottomY) - 8, PIPE_WIDTH, 8);
-      ctx.fillStyle = '#2ea44f';
-    }
+      //const bottomY = p.topHeight + PIPE_GAP;
+      //ctx.fillRect(p.x, bottomY, PIPE_WIDTH, canvas.height - groundHeight - bottomY);
+      //ctx.fillStyle = 'rgba(0,0,0,0.06)';
+     // ctx.fillRect(p.x, bottomY + (canvas.height - groundHeight - bottomY) - 8, PIPE_WIDTH, 8);
+     // ctx.fillStyle = '#2ea44f';
+    //}
+// obere Stange (Server-Bild nach unten ausgerichtet)
+ctx.drawImage(serverImg, pipe.x, 0, pipeWidth, pipe.top);
 
+// untere Stange (Server-Bild nach oben ausgerichtet)
+ctx.drawImage(serverImg, pipe.x, canvas.height - pipe.bottom, pipeWidth, pipe.bottom);
+
+    
     // ground
     ctx.fillStyle = '#ded895';
     ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
