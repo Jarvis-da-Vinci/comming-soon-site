@@ -291,12 +291,21 @@
     ctx.translate(bird.x, bird.y);
     ctx.rotate(bird.rotation);
     if (birdImg.complete && birdImg.naturalWidth !== 0){
-      // draw image with center alignment
-      ctx.drawImage(birdImg, -bw/2, -bh/2, bw, bh);
-    } else {
-      // placeholder circle if image not loaded
-      ctx.fillStyle = '#FFDD57';
-      ctx.beginPath(); ctx.ellipse(0,0,bw/2,bh/2,0,0,Math.PI*2); ctx.fill();
+  // Runde Maske erstellen
+  ctx.beginPath();
+  ctx.arc(0, 0, bw/2, 0, Math.PI * 2); 
+  ctx.closePath();
+  ctx.clip();
+
+  // Bild ins runde Clip zeichnen
+  ctx.drawImage(birdImg, -bw/2, -bh/2, bw, bh);
+} else {
+  // Platzhalter-Kreis falls Bild nicht geladen ist
+  ctx.fillStyle = '#FFDD57';
+  ctx.beginPath(); 
+  ctx.arc(0,0,bw/2,0,Math.PI*2); 
+  ctx.fill();
+  
     }
     ctx.restore();
 
